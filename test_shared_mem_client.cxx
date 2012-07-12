@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
 
   num.attach(id);
 
-  int_val = *num;
+  int_val = num;
 
   std::cout << "Int value = " << int_val << std::endl;
 
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
 
   str.attach(id);
 
-  str_val = *str;
+  str_val = str;
 
   std::cout << "Str value = " << str_val << std::endl;
 
