@@ -4,31 +4,6 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// TODO:
-//
-// Break this into 3 partial specializations:
-//
-// Single Value:
-//
-// template<typename T>
-// struct shared_memory<T,1>;
-//
-//
-// String:
-//
-// template <unsigned N>
-// struct shared_memory<char,N>;
-//
-//
-// Array:
-//
-// template <typename T, unsigned N>
-// struct shared_memory<T,N>;
-// 
-
-
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 namespace mrr {
@@ -37,35 +12,40 @@ namespace posix {
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <typename T, unsigned Size>
+template <typename T, std::size_t N>
 struct shared_memory;
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <typename T, unsigned Size>
+template <typename T, std::size_t N>
 struct shared_memory_base
 {
   using value_type = T;
   using flag_type = int;
 
 private:
-  friend class shared_memory<T,Size>;
+  friend class shared_memory<T,N>;
 
-  
+
 protected:
-  shared_memory_base(int flags)
-    : segment_id_(shmget(IPC_PRIVATE, sizeof(T)*Size, flags)),
-      shared_mem_(static_cast<value_type*>(shmat(segment_id_, NULL, 0)))
-  {
-  }
-
   shared_memory_base()
     : segment_id_(-1), shared_mem_(nullptr)
   {
   }
 
+  shared_memory_base(int flags)
+    : segment_id_(shmget(IPC_PRIVATE, sizeof(T)*N, flags)),
+      shared_mem_(static_cast<value_type*>(shmat(segment_id_, NULL, 0)))
+  {
+  }
 
-public:  
+  shared_memory_base(shared_memory_base const& shm)
+    : segment_id_(shm.segment_id_), shared_mem_(shm.shared_mem_)
+  {
+  }
+
+
+public:
   int segment_id() const
   {
     return segment_id_;
@@ -77,14 +57,17 @@ public:
     shared_mem_ = static_cast<value_type*>(shmat(segment_id_, NULL, 0));
   }
 
-  void clear()
+  void detatch()
   {
     shmdt(shared_mem_);
+    segment_id_ = -1;
+    shared_mem_ = nullptr;
   }
 
   void release()
   {
-    shmctl(segment_id_, IPC_RMID, NULL);
+    if(shared_mem_ != nullptr)
+      shmctl(segment_id_, IPC_RMID, NULL);
   }
 
   ~shared_memory_base()
@@ -102,14 +85,19 @@ protected:
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <typename T, unsigned Size = 1>
-struct shared_memory : shared_memory_base<T,Size>
+// Partial specialization for an array of type T
+//
+template <typename T, std::size_t N = 1>
+struct shared_memory : shared_memory_base<T,N>
 {
-  using base_type = shared_memory_base<T,Size>;
+  using base_type = shared_memory_base<T,N>;
 
   using value_type = typename base_type::value_type;
   using flag_type = typename base_type::flag_type;
-  
+
+  using size_type = std::size_t;
+  using iterator = T*;
+
   shared_memory(int flags)
     : base_type(flags)
   {
@@ -120,43 +108,208 @@ struct shared_memory : shared_memory_base<T,Size>
   {
   }
 
+  shared_memory(shared_memory const& shm)
+    : base_type(shm)
+  {
+  }
+
+  iterator begin()
+  {
+    return base_type::shared_mem_;
+  }
+
+  iterator end()
+  {
+    return base_type::shared_mem_ + N;
+  }
+
+  std::ostream& print(std::ostream& os) const
+  {
+    os << base_type::shared_mem_;
+    return os;
+  }
+
+  value_type& operator [](std::size_t n)
+  {
+    return *(base_type::shared_mem_ + n);
+  }
+
+}; // struct shared_memory<T,N> - array
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Partial specialization for a single type
+//
+template <typename T>
+struct shared_memory<T,1> : shared_memory_base<T,1>
+{
+  using base_type = shared_memory_base<T,1>;
+
+  using value_type = typename base_type::value_type;
+  using flag_type = typename base_type::flag_type;
+
+  shared_memory(int flags)
+    : base_type(flags)
+  {
+  }
+
+  shared_memory()
+    : base_type()
+  {
+  }
+
+  shared_memory(shared_memory const& shm)
+    : base_type(shm)
+  {
+  }
+
+
   shared_memory& operator =(value_type const& val)
   {
     *base_type::shared_mem_ = val;
     return *this;
   }
 
-  // For char[]
-  shared_memory& operator =(value_type const * const& str)
+  std::ostream& print(std::ostream& os) const
+  {
+    os << *base_type::shared_mem_;
+    return os;
+  }
+
+  operator value_type&()
+  {
+    return *base_type::shared_mem_;
+  }
+
+}; // struct shared_memory<T,1> - single type
+
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Partial specialization for a string
+//
+template <std::size_t N>
+struct shared_memory<char,N> : shared_memory_base<char,N>
+{
+  using base_type = shared_memory_base<char,N>;
+
+  using value_type = typename base_type::value_type;
+  using flag_type = typename base_type::flag_type;
+
+  using size_type = std::size_t;
+  using iterator = value_type*;
+
+  shared_memory(int flags)
+    : base_type(flags)
+  {
+  }
+
+  shared_memory()
+    : base_type()
+  {
+  }
+
+  shared_memory(shared_memory const& shm)
+    : base_type(shm)
+  {
+  }
+
+  shared_memory& operator =(char const*const str)
   {
     sprintf(base_type::shared_mem_, str);
     return *this;
   }
 
-  value_type* operator&()
+  std::ostream& print(std::ostream& os) const
+  {
+    os << base_type::shared_mem_;
+    return os;
+  }
+
+  iterator begin()
   {
     return base_type::shared_mem_;
   }
 
+  iterator end()
+  {
+    return base_type::shared_mem_ + N;
+  }
+
+  operator std::string()
+  {
+    return std::string(base_type::shared_mem_);
+  }
+
+  value_type& operator [](std::size_t n)
+  {
+    return *(base_type::shared_mem_ + n);
+  }
+
+}; // struct shared_memory<char,N> - string
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+// Corner case for a single char
+//
+template <>
+struct shared_memory<char,1> : shared_memory_base<char,1>
+{
+  using base_type = shared_memory_base<char,1>;
+
+  using value_type = typename base_type::value_type;
+  using flag_type = typename base_type::flag_type;
+
+  shared_memory(int flags)
+    : base_type(flags)
+  {
+  }
+
+  shared_memory()
+    : base_type()
+  {
+  }
+
+  shared_memory(shared_memory const& shm)
+    : base_type(shm)
+  {
+  }
+
+
+  shared_memory& operator =(value_type const& val)
+  {
+    *base_type::shared_mem_ = val;
+    return *this;
+  }
+
   std::ostream& print(std::ostream& os) const
   {
-    if(Size > 1 && std::is_same<value_type,char>::value)
-      os << base_type::shared_mem_;
-    else
-      os << *base_type::shared_mem_;
-
+    os << *base_type::shared_mem_;
     return os;
   }
 
-  value_type& operator*()
+  operator value_type&()
   {
     return *base_type::shared_mem_;
   }
-     
-}; // struct shared_memory
+
+}; // struct shared_memory<char,1> - corner case
 
 
+template <typename T, std::size_t N>
+inline auto begin(shared_memory<T,N>& shm) -> decltype(shm.begin())
+{
+  return shm.begin();
+}
 
+template <typename T, std::size_t N>
+inline auto end(shared_memory<T,N>& shm) -> decltype(shm.end())
+{
+  return shm.end();
+}
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -166,12 +319,11 @@ struct shared_memory : shared_memory_base<T,Size>
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-template <typename T, unsigned Size>
-std::ostream& operator <<(std::ostream& os, mrr::posix::shared_memory<T,Size> const& mem)
+template <typename T, std::size_t N>
+std::ostream& operator <<(std::ostream& os, mrr::posix::shared_memory<T,N> const& mem)
 {
   return mem.print(os);
 }
-
 
 
 

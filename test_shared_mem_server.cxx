@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <iterator>
 #include <iostream>
 #include <string>
 #include "shared_mem.hxx"
@@ -12,12 +14,31 @@ int main()
   std::cout << "Str Segment id: " << str.segment_id() << std::endl;
 
   num = 5;
-  // sprintf(&str, "Hello there :)");
+
   str = "hello there!!!!";
 
   std::cerr << "Back in main\n";
 
   std::cerr << "The string is: " << str << std::endl;
+
+  mrr::posix::shared_memory<int,10> array(S_IRUSR | S_IWUSR);
+
+  for(auto& x : array)
+    x = 5;
+
+  std::cout << '[';
+  for(auto const& x : array)
+    std::cout << ' ' << x;
+  std::cout << " ]" << std::endl;
+
+  std::transform(
+    begin(array), end(array),
+    std::ostream_iterator<int>(std::cout, "\n"),
+    [](int x)
+    {
+      return x * 5;
+    }
+  );
 
   for(;;)
     ;
