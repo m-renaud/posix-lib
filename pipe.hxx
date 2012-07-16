@@ -14,6 +14,8 @@ namespace posix {
 
 struct pipe
 {
+  using fd_type = file_descriptor::fd_type;
+  
 private:
   void init()
   {
@@ -21,15 +23,13 @@ private:
     ::pipe(fd_);
     read = fd_[0];
     write = fd_[1];
-    
-  } // void init()
+  }
 
 public:
   pipe()
   {
     init();
-
-  } // pipe()
+  }
 
   pipe(pipe&& p)
     : read(p.read.fd), write(p.write.fd)
@@ -43,11 +43,19 @@ public:
     this->close();
   }
 
-  
-
   void close()
   {
     read.close();
+    write.close();
+  }
+
+  void close_read_end()
+  {
+    read.close();
+  } 
+
+  void close_write_end()
+  {
     write.close();
   }
 
@@ -60,9 +68,7 @@ public:
   file_descriptor& read_end()
   {
     return read;
-
-  } // file_descriptor& read_end()
-
+  }
 
   file_descriptor& write_end()
   {
