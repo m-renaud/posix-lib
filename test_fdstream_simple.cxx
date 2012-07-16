@@ -38,16 +38,20 @@ int main()
   mrr::posix::fd_ostream write_end(successful_auth.write_end());
   mrr::posix::fd_istream read_end(successful_auth.read_end());
 
+  read_end.tie(&write_end);
+
   opener m1(22, 10);
-  opener m2(80, 20);
 
   opener received;
 
-  write_end << m1 << EOF;
+  write_end << m1;
+
+  write_end.flush();
 
   read_end >> received;
 
   std::cout << "Opening port " << received.port << " for " << received.seconds << "s\n";
 
   return 0;
+
 }

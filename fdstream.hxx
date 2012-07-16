@@ -35,6 +35,23 @@ ssize_t myread(int fildes, void *buf, size_t nbyte)
   return numbytes;
 }
 
+//m===========================================================================
+// Wrapper function for the write system call to handle EINTR.
+// The write function is reentrant so this must be taken care of...
+ssize_t mywrite(int fildes, const void *buf, size_t nbyte)
+{
+  // Loop while the write function is interupted.  Set errno in the loop
+  // to make sure that another system call has not set it.
+  ssize_t numbytes = 0;
+  do
+  {
+    errno = 0;
+    numbytes = write(fildes, buf, nbyte);
+  }
+  while (numbytes == -1 && errno == EINTR);
+  return numbytes;
+}
+
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 } // namespace detail
@@ -44,49 +61,151 @@ ssize_t myread(int fildes, void *buf, size_t nbyte)
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-class fd_out_buf : public std::streambuf
+template <typename CharT, class ChTr>
+class fd_buf : public std::basic_streambuf<CharT,ChTr>
 {
+
+  using int_type = typename std::basic_streambuf<CharT,ChTr>::int_type;
+  using char_type = typename std::basic_streambuf<CharT,ChTr>::char_type;
+  using traits_type = typename std::basic_streambuf<CharT,ChTr>::traits_type;
+  
 protected:
   int fd;
+  char char_buf;
+  bool take_from_buf;
 
 public:
-  fd_out_buf(int fd_)
-    : fd(fd_)
+  fd_buf(int fd_)
+    : fd(fd_), take_from_buf(false)
   {
   }
 
 protected:
-  virtual int_type overflow(int_type c)
+  int_type overflow(int_type c = traits_type::eof())
   {
-    if(c != EOF)
+    if(!traits_type::eq_int_type(c, traits_type::eof()))
     {
-      char z = c;
-      if(write (fd, &z, 1) != 1)
+      errno = 0;
+      if(detail::mywrite(fd, &char_buf, 1) < 0 && errno != 0)
+	return traits_type::eof();
+      else
+	return char_buf;
+    }
+
+    return traits_type::not_eof(c);
+
+  } // int_type overflow(int_type)
+
+
+
+  int_type uflow()
+  {
+    if(take_from_buf)
+    {
+      take_from_buf = false;
+      return traits_type::to_int_type(char_buf);
+    }
+    else
+    {
+      char_type c;
+      errno = 0;
+      
+      if(detail::myread(fd, &char_buf, 1) < 0 && errno != 0)
       {
-	return EOF;
+	return traits_type::eof();
+      }
+      else
+      {
+	char_buf = c;
+	return traits_type::to_int_type(c);
+      }
+
+    }
+
+  }  // int_type uflow()
+
+
+
+  int_type underflow()
+  {
+    if(take_from_buf)
+    {
+      return traits_type::to_int_type(char_buf);
+    }
+    else
+    {
+      char_type c;
+      errno = 0;
+
+      if(detail::myread(fd, &char_buf, 1) && errno != 0)
+      {
+	return traits_type::eof();
+      }
+      else
+      {
+	take_from_buf = true;
+	char_buf = c;
+	return traits_type::to_int_type(c);
       }
     }
-    return c;
-  }
 
-  virtual std::streamsize xsputn(const char* str, std::streamsize n)
+  } // int_type underflow()
+
+
+
+  int_type pbackfail(int_type c)
   {
-    return write(fd,str,n);
-  }
+    if(!take_from_buf)
+    {
+      if(!traits_type::eq_int_type(c, traits_type::eof()))
+	char_buf = traits_type::to_char_type(c);
+
+      take_from_buf = false;
+      return traits_type::to_int_type(char_buf);
+    }
+    else
+    {
+      return traits_type::eof();
+    }
+
+  } // int_type pbackfail(int_type)
   
-}; // class fd_out_buf
+}; // class fd_buf
+
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-class fd_ostream : public std::ostream
+template <typename CharT, typename ChTr>
+class basic_fd_istream : public std::basic_istream<CharT,ChTr>
 {
+  using base_type = std::basic_istream<CharT,ChTr>;
+  
 protected:
-  fd_out_buf buf;
+  fd_buf<CharT,ChTr> buf;
+
 public:
-  fd_ostream (int fd)
+  basic_fd_istream(int fd)
+    : std::istream(0), buf(fd)
+  {
+    base_type::rdbuf(&buf);
+  }
+};
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+template <typename CharT, typename ChTr>
+class basic_fd_ostream : public std::basic_ostream<CharT,ChTr>
+{
+  using base_type = std::basic_ostream<CharT,ChTr>;
+  
+protected:
+  fd_buf<CharT,ChTr> buf;
+public:
+  basic_fd_ostream (int fd)
     : std::ostream(0), buf(fd)
   {
-    rdbuf(&buf);
+    base_type::rdbuf(&buf);
   }
 
 }; // class fd_ostream
@@ -94,84 +213,8 @@ public:
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-class fd_in_buf : public std::streambuf
-{
-
-protected:
-  static constexpr int buffer_size = 100;
-  static constexpr int putback_size = 10;
-  char buffer[buffer_size];
-  int fd;
-
-
-public:
-  fd_in_buf(int fd_)
-    : fd(fd_)
-  {
-    setg(buffer+putback_size,
-	 buffer+putback_size,
-	 buffer+putback_size);
-  }
-  
-protected:
-  virtual std::streamsize showmanyc()
-  {
-    return this->egptr() - this->gptr();
-  }
-
-  //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-  virtual int_type underflow()
-  {
-    if(gptr() < egptr())
-    {
-      return traits_type::to_int_type(*gptr());
-    }
-
-    int num_putback;
-    num_putback = gptr() - eback();
-    if(num_putback > putback_size)
-      num_putback = putback_size;
-
-    std::memmove(buffer+(putback_size - num_putback),
-		 gptr()-num_putback,
-		 num_putback);
-
-
-    // Read new characters...
-    auto num = detail::myread(fd, buffer+putback_size, buffer_size-putback_size);
-    // auto num = ::read(fd, buffer+putback_size, buffer_size-putback_size);
-
-    if(num <= 0)
-    {
-      return traits_type::eof();
-    }
-
-    setg(buffer+(putback_size - num_putback),
-	 buffer+putback_size,
-	 buffer+putback_size+num);
-
-    return traits_type::to_int_type(*gptr());
-
-  } // virtual int_type underflow()
-
-}; // class fd_in_buf
-
-
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-class fd_istream : public std::istream
-{
-protected:
-  fd_in_buf buf;
-
-public:
-  fd_istream(int fd)
-    : std::istream(0), buf(fd)
-  {
-    rdbuf(&buf);
-  }
-};
-
+using fd_istream = basic_fd_istream<char, std::char_traits<char> >;
+using fd_ostream = basic_fd_ostream<char, std::char_traits<char> >;
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
