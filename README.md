@@ -30,7 +30,7 @@ To create a child process, simple call the `make_child_process` helper
 function, passing in a function or anything that behaves as such.
 
 	auto child_1 = mrr::posix::make_child_process(
-	  \[\]\(\int n)
+	  [] (int n)
 	  {
 		std::cout << n << std::endl;
 	  }
@@ -74,7 +74,7 @@ This portion of the library provides a handle for a file
 descriptor. On destruction it handles closing the file descriptor and
 takes care of errno since close is re-entrant.
 
-## Use With Functions Taking Int ##
+## Use With Other Functions ##
 
 The **cast operator** is overloaded for `int` so you can use this
 anywhere you would normally use an `int` to represent the file
@@ -185,6 +185,25 @@ string shared memory as you would `std::string`
 	mrr::posix::shared_memory<char,1000> string(S_IRUSR | S_IWUSR);
 	string = "Hello there!! :)";
 	std::cout << "String is \"" << string << "\"\n";
+
+
+### Attaching Shared Memory in Another Process ##
+
+The default constructor for `mrr::posix::shared_memory` does not
+allocate any memory, it simply sets up the data structure to either
+create memory later or to attach to another segment of shared memory.
+
+Attaching to another segment is easy as pie! Look how we would attach
+to the shared memory we created in the **Single Type** section in
+another process that was passed the segment id as `argv[1]`:
+
+*Note: to_type<T>() is a function template that takes a string and
+ retuns it as type T*
+
+	int segment_identifier = to_type<int>(argv[1]);
+	mrr::posix::shared_memory<int> num;
+	num.attach(segment_identifier);
+	std::cout << "Num = " << num << std::endl;
 
 
 
