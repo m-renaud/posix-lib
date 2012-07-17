@@ -40,19 +40,18 @@ int main()
 
   read_end.tie(&write_end);
 
-  opener m1(22, 10);
-
-  // opener received;
   int received;
 
-  // write_end << m1;
+#if 1
   write_end << 5;
+#else
+  write_end << 5 << std::char_traits<char>::eof();
+#endif
 
   write_end.flush();
 
   read_end >> received;
 
-  // std::cout << "Opening port " << received.port << " for " << received.seconds << "s\n";
   std::cout << received << std::endl;
 
   return 0;

@@ -1,6 +1,7 @@
 #ifndef MRR_FILE_DESCRIPTOR_HXX_
 #define MRR_FILE_DESCRIPTOR_HXX_
 
+#include <errno.h>
 #include <unistd.h>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -20,21 +21,30 @@ struct file_descriptor
   using fd_type = int;
 
   file_descriptor()
-    : fd(-1)
+    : file_descriptor(-1)
   {
   }
   
-  file_descriptor(fd_type fd_, bool close_fd_ = true)
-    : fd(fd_)
+  file_descriptor(fd_type fd_, bool auto_close_fd_ = false)
+    : fd(fd_), auto_close_fd(auto_close_fd_)
   {
   }
 
   file_descriptor(file_descriptor&& f)
-    : fd(f.fd)
+    : file_descriptor(f.fd)
   {
     f.fd = -1;
   }
 
+  void auto_close(bool auto_close_fd_)
+  {
+    auto_close_fd = auto_close_fd_;
+  }
+
+  bool auto_close() const
+  {
+    return auto_close_fd;
+  }
 
   void close()
   {
@@ -53,27 +63,30 @@ struct file_descriptor
 
   ~file_descriptor()
   {
-    this->close();
+    if(auto_close_fd)
+      this->close();
   }
 
-  fd_type operator =(fd_type const& fd_)
+  file_descriptor& operator =(fd_type const& fd_)
   {
     this->close();
     fd = fd_;
+    return *this;
   }
 
-  operator fd_type&()
+  operator fd_type const&() const
   {
     return fd;
   }
 
-  fd_type& get_fd()
+  fd_type const& get_fd() const
   {
     return fd;
   }
 
 private:
   fd_type fd;
+  bool auto_close_fd;
 
 }; // struct file_descriptor
 

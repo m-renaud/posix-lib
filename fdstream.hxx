@@ -29,7 +29,7 @@ ssize_t myread(int fildes, void *buf, size_t nbyte)
   do
   {
     errno = 0;
-    numbytes = read(fildes, buf, nbyte);
+    numbytes = ::read(fildes, buf, nbyte);
   }
   while (numbytes == -1 && errno == EINTR);
   return numbytes;
@@ -46,7 +46,7 @@ ssize_t mywrite(int fildes, const void *buf, size_t nbyte)
   do
   {
     errno = 0;
-    numbytes = write(fildes, buf, nbyte);
+    numbytes = ::write(fildes, buf, nbyte);
   }
   while (numbytes == -1 && errno == EINTR);
   return numbytes;
@@ -69,7 +69,7 @@ class fd_buf : public std::basic_streambuf<CharT,ChTr>
   using char_type = typename std::basic_streambuf<CharT,ChTr>::char_type;
   using traits_type = typename std::basic_streambuf<CharT,ChTr>::traits_type;
   
-protected:
+private:
   int fd;
   char char_buf;
   bool take_from_buf;
@@ -80,16 +80,20 @@ public:
   {
   }
 
+  fd_buf(fd_buf const&) = delete;
+  fd_buf& operator =(fd_buf const&) = delete;
+
 protected:
   int_type overflow(int_type c = traits_type::eof())
   {
     if(!traits_type::eq_int_type(c, traits_type::eof()))
     {
       errno = 0;
-      if(detail::mywrite(fd, &char_buf, 1) < 0 && errno != 0)
+      char_type c2 = traits_type::to_char_type(c);
+      if(detail::mywrite(fd, &c2, 1) < 0 && errno != 0)
 	return traits_type::eof();
       else
-	return char_buf;
+	return c;
     }
 
     return traits_type::not_eof(c);
@@ -110,7 +114,7 @@ protected:
       char_type c;
       errno = 0;
       
-      if(detail::myread(fd, &char_buf, 1) < 0 && errno != 0)
+      if(detail::myread(fd, &c, 1) < 0 && errno != 0)
       {
 	return traits_type::eof();
       }
@@ -137,7 +141,7 @@ protected:
       char_type c;
       errno = 0;
 
-      if(detail::myread(fd, &char_buf, 1) && errno != 0)
+      if(detail::myread(fd, &c, 1) < 0 && errno != 0)
       {
 	return traits_type::eof();
       }
@@ -169,7 +173,7 @@ protected:
     }
 
   } // int_type pbackfail(int_type)
-  
+
 }; // class fd_buf
 
 
