@@ -1,36 +1,7 @@
 #include <iostream>
 
 #include "fdstream.hxx"
-#include "file_descriptor.hxx"
 #include "pipe.hxx"
-
-struct opener
-{
-  int port;
-  unsigned seconds;
-
-  opener()
-  {
-  }
-  
-  opener(int p, unsigned s)
-    : port(p), seconds(s)
-  {
-  }
-  
-};
-
-std::ostream& operator<<(std::ostream& os, opener const& message)
-{
-  os << message.port << ' ' << message.seconds;
-  return os;
-}
-
-std::istream& operator >>(std::istream& is, opener& message)
-{
-  is >> message.port >> message.seconds;
-  return is;
-}
 
 int main()
 {
