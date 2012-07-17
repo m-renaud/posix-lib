@@ -34,8 +34,8 @@ protected:
   }
 
   shared_memory_base(int flags)
-    : segment_id_(shmget(IPC_PRIVATE, sizeof(T)*N, flags)),
-      shared_mem_(static_cast<value_type*>(shmat(segment_id_, NULL, 0))),
+    : segment_id_(::shmget(IPC_PRIVATE, sizeof(T)*N, flags)),
+      shared_mem_(static_cast<value_type*>(::shmat(segment_id_, NULL, 0))),
       auto_release(true)
   {
   }
@@ -50,12 +50,12 @@ public:
   void attach(int segment_id)
   {
     segment_id_ = segment_id;
-    shared_mem_ = static_cast<value_type*>(shmat(segment_id_, NULL, 0));
+    shared_mem_ = static_cast<value_type*>(::shmat(segment_id_, NULL, 0));
   }
 
   void detatch()
   {
-    shmdt(shared_mem_);
+    ::shmdt(shared_mem_);
     segment_id_ = -1;
     shared_mem_ = nullptr;
   }
@@ -66,14 +66,14 @@ public:
     {
       int seg_id = segment_id_;
       this->detatch();
-      shmctl(seg_id, IPC_RMID, NULL);
+      ::shmctl(seg_id, IPC_RMID, NULL);
     }
   }
 
   ~shared_memory_base()
   {
     if(auto_release)
-      release();
+      this->release();
   }
 
 

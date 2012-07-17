@@ -49,7 +49,7 @@ struct child_process
   {
     if(pid_ != 0 && !waited_for)
     {
-      waitpid(pid_, &status_, options);
+      ::waitpid(pid_, &status_, options);
       waited_for = true;
     }
   }
