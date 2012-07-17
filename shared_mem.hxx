@@ -29,18 +29,14 @@ private:
 
 protected:
   shared_memory_base()
-    : segment_id_(-1), shared_mem_(nullptr)
+    : segment_id_(-1), shared_mem_(nullptr), auto_release(false)
   {
   }
 
   shared_memory_base(int flags)
     : segment_id_(shmget(IPC_PRIVATE, sizeof(T)*N, flags)),
-      shared_mem_(static_cast<value_type*>(shmat(segment_id_, NULL, 0)))
-  {
-  }
-
-  shared_memory_base(shared_memory_base const& shm)
-    : segment_id_(shm.segment_id_), shared_mem_(shm.shared_mem_)
+      shared_mem_(static_cast<value_type*>(shmat(segment_id_, NULL, 0))),
+      auto_release(true)
   {
   }
 
@@ -67,18 +63,24 @@ public:
   void release()
   {
     if(shared_mem_ != nullptr)
-      shmctl(segment_id_, IPC_RMID, NULL);
+    {
+      int seg_id = segment_id_;
+      this->detatch();
+      shmctl(seg_id, IPC_RMID, NULL);
+    }
   }
 
   ~shared_memory_base()
   {
-    release();
+    if(auto_release)
+      release();
   }
 
 
 protected:
   int segment_id_;
   value_type* shared_mem_;
+  bool auto_release;
 
 }; // struct shared_memory base
 
