@@ -2,7 +2,7 @@
 #include <iterator>
 #include <iostream>
 #include <string>
-#include "shared_mem.hxx"
+#include "../shared_mem.hxx"
 
 
 int main()

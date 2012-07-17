@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "fdstream.hxx"
-#include "pipe.hxx"
+#include "../fdstream.hxx"
+#include "../pipe.hxx"
 
 int main()
 {

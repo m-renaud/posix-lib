@@ -1,7 +1,7 @@
 #include <iostream>
 #include <functional>
 
-#include "child_process.hxx"
+#include "../child_process.hxx"
 
 void sum(int a, int b)
 {

@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include "shared_mem.hxx"
+#include "../shared_mem.hxx"
 
 
-int main(int argc, char* argv[])
+int main()
 {
   int id;
   int int_val;
