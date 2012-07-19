@@ -30,12 +30,6 @@ struct file_descriptor
   {
   }
 
-  file_descriptor(file_descriptor&& f)
-    : file_descriptor(f.fd)
-  {
-    f.fd = -1;
-  }
-
   void auto_close(bool auto_close_fd_)
   {
     auto_close_fd = auto_close_fd_;
@@ -52,6 +46,7 @@ struct file_descriptor
     
     if(fd == -1)
       return;
+
     do
     {
       errno = 0;
@@ -69,7 +64,6 @@ struct file_descriptor
 
   file_descriptor& operator =(fd_type const& fd_)
   {
-    this->close();
     fd = fd_;
     return *this;
   }
