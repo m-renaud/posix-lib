@@ -38,6 +38,17 @@ public:
     p.write.fd = -1;
   }
 
+  pipe& operator =(pipe&& p)
+  {
+    read = p.read.fd;
+    write = p.read.fd;
+    p.read.fd = -1;
+    p.write.fd = -1;
+  }
+
+  pipe(pipe const&) = delete;
+  pipe& operator =(pipe const&) = delete;
+
   ~pipe()
   {
     this->close();
