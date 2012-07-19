@@ -15,13 +15,20 @@ void print_number(int fd, int num)
   write << num << std::endl;
 }
 
-void read_numbers(int fd)
+void read_numbers_impl(int fd)
 {
   int num;
   std::cout << "Activity from " << fd << std::endl;
   mrr::posix::fd_istream read(fd);
   read >> num;
   std::cout << "Num = " << num << std::endl;
+}
+
+void read_numbers(int fd)
+{
+  auto c = mrr::posix::make_child_process(read_numbers_impl);
+  c.fork(fd);
+  c.wait(WNOHANG);
 }
 
 int main()
@@ -42,5 +49,6 @@ int main()
 
   p_select.watch(p1.read_end(), read_numbers);
   p_select.watch(p2.read_end(), read_numbers);
+  
   p_select.listen_with_action();
 }
