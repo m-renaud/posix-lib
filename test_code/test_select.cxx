@@ -15,19 +15,20 @@ void print_number(int fd, int num)
   write << num << std::endl;
 }
 
-void read_numbers_impl(int fd)
+void read_numbers_impl(int num)
 {
-  int num;
-  std::cout << "Activity from " << fd << std::endl;
-  mrr::posix::fd_istream read(fd);
-  read >> num;
   std::cout << "Num = " << num << std::endl;
 }
 
 void read_numbers(int fd)
 {
+  int num;
+  std::cout << "Activity from " << fd << std::endl;
+  mrr::posix::fd_istream read(fd);
+  read >> num;
+
   auto c = mrr::posix::make_child_process(read_numbers_impl);
-  c.fork(fd);
+  c.fork(num);
   c.wait(WNOHANG);
 }
 
