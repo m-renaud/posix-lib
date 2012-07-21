@@ -25,13 +25,21 @@ struct child_process
   using status_type = int;
 
   child_process(function_type const& func)
-    : func_(func), pid_(-1), status_(-1), waited_for(false)
+    : func_(func), pid_(), status_(-1), waited_for(false)
   {
   }
 
   child_process(child_process const& cp)
     : child_process(cp.func_)
   {
+  }
+
+  child_process(child_process&& cp)
+    : func_(cp.func_), pid_(cp.pid_), status_(cp.status_), waited_for(cp.waited_for)
+  {
+    cp.pid_ = 0;
+    cp.status_ = -1;
+    cp.waited_for = false;
   }
 
   ~child_process()
@@ -41,12 +49,27 @@ struct child_process
 
   child_process& operator =(child_process const& cp)
   {
+    this->wait();
     func_ = cp.func_;
-    pid_=  -1;
+    pid_=  0;
     status_ = -1;
     waited_for = false;
+    return *this;
   }
 
+  child_process& operator =(child_process&& cp)
+  {
+    func_ = cp.func_;
+    pid_=  cp.pid_;
+    status_ = cp.statu_;
+    waited_for = cp.waited_for;
+
+    cp.pid_=  0;
+    cp.status_ = -1;
+    cp.waited_for = false;
+
+    return *this;
+  }
 
   template <typename... FuncArgs>
   void fork(FuncArgs&&... args)
