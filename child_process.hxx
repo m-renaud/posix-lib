@@ -25,7 +25,12 @@ struct child_process
   using status_type = int;
 
   child_process(function_type const& func)
-    : func_(func), pid_(), status_(), waited_for(false)
+    : func_(func), pid_(-1), status_(-1), waited_for(false)
+  {
+  }
+
+  child_process(child_process const& cp)
+    : child_process(cp.func_)
   {
   }
 
@@ -33,6 +38,15 @@ struct child_process
   {
     this->wait();
   }
+
+  child_process& operator =(child_process const& cp)
+  {
+    func_ = cp.func_;
+    pid_=  -1;
+    status_ = -1;
+    waited_for = false;
+  }
+
 
   template <typename... FuncArgs>
   void fork(FuncArgs&&... args)
@@ -44,7 +58,7 @@ struct child_process
       std::exit(0);
     }
   }
-  
+
   void wait(int options = 0)
   {
     if(pid_ != 0 && !waited_for)
@@ -70,7 +84,7 @@ private:
   pid_type pid_;
   status_type status_;
   bool waited_for;
-  
+
 }; // struct child_process<Function>
 
 
@@ -78,7 +92,7 @@ template <typename Function>
 inline child_process<Function> make_child_process(Function&& func)
 {
   return child_process<Function>(std::forward<Function>(func));
-  
+
 } // child_process<Function> make_child_process()
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
