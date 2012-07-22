@@ -68,7 +68,7 @@ class fd_buf : public std::basic_streambuf<CharT,ChTr>
   using int_type = typename std::basic_streambuf<CharT,ChTr>::int_type;
   using char_type = typename std::basic_streambuf<CharT,ChTr>::char_type;
   using traits_type = typename std::basic_streambuf<CharT,ChTr>::traits_type;
-  
+
 private:
   int fd;
   char char_buf;
@@ -113,7 +113,7 @@ protected:
     {
       char_type c;
       errno = 0;
-      
+
       if(detail::myread(fd, &c, 1) < 0 && errno != 0)
       {
 	return traits_type::eof();
@@ -179,11 +179,11 @@ protected:
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <typename CharT, typename ChTr>
+template <typename CharT, typename ChTr = std::char_traits<CharT> >
 class basic_fd_istream : public std::basic_istream<CharT,ChTr>
 {
   using base_type = std::basic_istream<CharT,ChTr>;
-  
+
 protected:
   fd_buf<CharT,ChTr> buf;
 
@@ -198,11 +198,11 @@ public:
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-template <typename CharT, typename ChTr>
+template <typename CharT, typename ChTr = std::char_traits<CharT> >
 class basic_fd_ostream : public std::basic_ostream<CharT,ChTr>
 {
   using base_type = std::basic_ostream<CharT,ChTr>;
-  
+
 protected:
   fd_buf<CharT,ChTr> buf;
 public:
@@ -217,8 +217,8 @@ public:
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-using fd_istream = basic_fd_istream<char, std::char_traits<char> >;
-using fd_ostream = basic_fd_ostream<char, std::char_traits<char> >;
+using fd_istream = basic_fd_istream<char>;
+using fd_ostream = basic_fd_ostream<char>;
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
