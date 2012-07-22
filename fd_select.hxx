@@ -15,7 +15,7 @@ namespace posix {
 struct fd_select
 {
   using function_type = std::function<void(int)>;
-  
+
   fd_select()
   {
     FD_ZERO(&readset);
@@ -24,7 +24,7 @@ struct fd_select
   int listen()
   {
     int retval;
-    
+
     checkset = readset;
     do
     {
@@ -34,7 +34,7 @@ struct fd_select
 
     if(retval == -1)
       return -1;
-    
+
     for(int fd : fds)
       if(FD_ISSET(fd, &checkset))
 	return fd;
@@ -44,30 +44,29 @@ struct fd_select
   {
     int retval;
 
-    for(;;)
+    checkset = readset;
+    do
     {
-      checkset = readset;
-      do
-      {
-	errno = 0;
-	retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
-      } while(retval == -1 && errno == EINTR);
+      errno = 0;
+      retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
+    } while(retval == -1 && errno == EINTR);
 
-      if(retval == -1)
-	return -1;
+    if(retval == -1)
+      return -1;
 
-      std::size_t pos = 0;
-    
-      for(int fd : fds)
-      {
-      	if(FD_ISSET(fd, &checkset))
-      	  actions[pos](fd);
-      	++pos;
-      }
+    std::size_t pos = 0;
+
+    for(int fd : fds)
+    {
+      if(FD_ISSET(fd, &checkset))
+	actions[pos](fd);
+      ++pos;
     }
 
+    return retval;
+
   } // int listen_with_action()
-  
+
 
   void watch(int fd)
   {

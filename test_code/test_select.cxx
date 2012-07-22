@@ -50,6 +50,15 @@ int main()
 
   p_select.watch(p1.read_end(), read_numbers);
   p_select.watch(p2.read_end(), read_numbers);
-  
-  p_select.listen_with_action();
+
+  for(;;)
+  {
+    int ret_val = p_select.listen_with_action();
+    if(ret_val == -1)
+      break;
+    else
+      std::cout << "Had activity from " << ret_val << " fds\n";
+  }
+
+  std::cout << "SOMETHING WENT WRONG!!!\n";
 }
