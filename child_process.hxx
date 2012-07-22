@@ -24,6 +24,8 @@ struct child_process
   using pid_type = pid_t;
   using status_type = int;
 
+  child_process() = default;
+
   child_process(function_type const& func)
     : func_(func), pid_(), status_(-1), waited_for(false)
   {
@@ -69,6 +71,11 @@ struct child_process
     cp.waited_for = false;
 
     return *this;
+  }
+
+  void function(function_type const& f)
+  {
+    func_ = f;
   }
 
   template <typename... FuncArgs>
