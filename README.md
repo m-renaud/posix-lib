@@ -13,9 +13,10 @@ portions. Consult the bug list at the bottom of the page.
 
 * Child processes through the fork system call
 * File descriptor handles
-* File descriptor streams
 * Pipes
-* Shared Memory
+* File descriptor streams
+* Select on file descriptors
+* Shared memory
 
 
 <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
@@ -71,44 +72,16 @@ for you.
 ## File Descriptor Handle ##
 
 This portion of the library provides a handle for a file
-descriptor. On destruction it handles closing the file descriptor and
-takes care of errno since close is re-entrant.
+descriptor.  It is mostly used interally for the other portions of the
+library but you are free to use it if necessary. With the design of
+the library you will very infrequently find yourself needing to
+manipulate file descriptors explicitly.
 
 ## Use With Other Functions ##
 
 The **cast operator** is overloaded for `int` so you can use this
 anywhere you would normally use an `int` to represent the file
 descriptor.
-
-
-### Copying and Moving ###
-
-Due to the fact that on destruction the file descriptor will be
-closed, making a temporary of a file descriptor may yield unwanted
-results such as closing the file descriptor before you really want it
-closed.
-
-Currently I have not decided on the best way to remedy this. The
-options that I am thinking of are:
-
-1. Provide a move constructor so if moving them into a container, the
-   file descriptor copied from will no longer close the file handle, it
-   will be closed when the container is destroyed. (Curretly what I am using)
-
-2. By default, a newly created file descriptor will not automatically
-   close it's handle, only if an `auto_close` variable is set
-
-
-<!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
-## File Descriptor Streams ##
-
-Also provided with the library are stream classes for file
-descriptors. These class templates will work on any character type but
-convenient type aliases `fd_istream` and `fd_ostream` are provided.
-
-### Usage ###
-
-Usage is exactly what you would expect from a stream object.
 
 
 
@@ -138,6 +111,91 @@ practice when processes are communicating.
 At any point, you can create a new pipe by calling the `create()`
 member function. This closes the read and write end of the pipe
 curretly owned by the object and opens a new one.
+
+
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
+## File Descriptor Streams ##
+
+Also provided with the library are stream classes for file
+descriptors. The base class is `basic_fd_ostream<CharT,CharTraits>`
+but type aliases `fd_istream` and `fd_ostream` are provided which
+default to `char` as the underlying type, similar to how the standard
+provides `std::istream` and `std::ostream`.
+
+### Usage ###
+
+Usage is exactly what you would expect from a stream object.
+
+### Nuances ###
+
+When using one of these stream objects with a pipe, care must be taken
+to write some type of *end of record* character. This is due to the
+fact that when reading out of the pipe with an `fd_istream` object,
+the associated `operator >>` overload for a type needs to be sure that
+there is no more data coming.
+
+As a simple example, consider writing a number down a pipe as follows:
+
+	mrr::posix::pipe mypipe;
+	mrr::posix::fd_ostream write_to_pipe(mypipe.write_end());
+	mrr::posix::fd_istream read_from_pipe(mypipe.write_end());
+	int number;
+
+	write_to_pipe << 12345;
+	read_from_pipe >> number;
+
+What you will notice is that the `read_from_pipe >> number` will
+hang. This is because there is nothing to indicate that there is no
+more information coming down the pipe.  Both operations are in the
+same process so obviously we know that all the information has been
+written, but if the two ends of the pipe are in separate processes, we
+have no such guarantee.
+
+Suppose that "123" had been written to the pipe, if the
+`read_from_pipe` operation simply returned after extracting the number
+`123` I think you would be a little upset. You can easily remedy this
+by adding some type of *end of record* as mentioned previously. For
+example, if the last thing you are writing is a number, provide some
+non-numeric character such as a space or newline and it will behave
+exactly how you expect. There is probably a more elegant solution, I
+just have not it yet. If anyone reading this has any suggestions feel
+free to contact me.
+
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
+## Select on File Descriptors ##
+
+This hangle provides an easy way to handle multiple file descriptors
+and perform actions based on action from one of them.
+
+### Watching A File Descriptor ###
+
+You can instruct the select object to watch multiple file descriptors
+by calling the `watch` member function. There are two versions of this
+funcion:
+
+	void watch(int fd);
+
+This version is to be used if you want to manually handle the file
+descriptors that become active. It is to be used with the `listen`
+member function.
+
+	void watch(int fd, std::function<void(int)> f);
+
+This version is to be used when you want to carry out an action based
+on what file descriptor becomes active. This is the one that you will
+probably use most often and is to be used with the
+`listen_with_action` member function.
+
+### Listening for Action ###
+
+After you instruct the select handler which file handlers you wish for
+it to handle, you simply tell it to wait for one of those file
+descriptors to become active. As with the `watch` member functions,
+there are two versions:
+
+	int listen();
 
 
 
@@ -204,13 +262,3 @@ another process that was passed the segment id as `argv[1]`:
 	mrr::posix::shared_memory<int> num;
 	num.attach(segment_identifier);
 	std::cout << "Num = " << num << std::endl;
-
-
-
-<!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
-# BUGS #
-
-* Automatically closing file descriptors causes unwanted behaviour in
-  many cases
-* File descriptor streams not fully working, not giving what was
-  written to them
