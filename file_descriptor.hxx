@@ -1,3 +1,12 @@
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Copyright (c) 2012, Matthew Renaud
+// All rights reserved.
+//
+// Licensed under the FreeBSD license. See LICENSE file for details.
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 #ifndef MRR_FILE_DESCRIPTOR_HXX_
 #define MRR_FILE_DESCRIPTOR_HXX_
 
@@ -17,14 +26,14 @@ struct pipe;
 struct file_descriptor
 {
   friend class pipe;
-  
+
   using fd_type = int;
 
   file_descriptor()
     : file_descriptor(-1)
   {
   }
-  
+
   file_descriptor(fd_type fd_, bool auto_close_fd_ = false)
     : fd(fd_), auto_close_fd(auto_close_fd_)
   {
@@ -43,7 +52,7 @@ struct file_descriptor
   void close()
   {
     int ret_val;
-    
+
     if(fd == -1)
       return;
 

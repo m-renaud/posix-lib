@@ -2,11 +2,10 @@
 
 POSIX Lib is a set of C++ binding for the POSIX API.
 
-# DISCLAIMER #
+# LICENSE #
 
-This library is not finished and at any point there may be non-working
-portions. Consult the bug list at the bottom of the page.
-
+This software is licensed under the FreeBSD license. See the LICENSE file
+for details.
 
 <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
 ## What's Implemented ##

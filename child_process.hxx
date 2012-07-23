@@ -1,3 +1,12 @@
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Copyright (c) 2012, Matthew Renaud
+// All rights reserved.
+//
+// Licensed under the FreeBSD license. See LICENSE file for details.
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 #ifndef MRR_CHILD_PROCESS_HXX_
 #define MRR_CHILD_PROCESS_HXX_
 

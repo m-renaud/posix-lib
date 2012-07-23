@@ -1,3 +1,12 @@
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//
+// Copyright (c) 2012, Matthew Renaud
+// All rights reserved.
+//
+// Licensed under the FreeBSD license. See LICENSE file for details.
+//
+//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 #ifndef MRR_POSIX_LIB_SHARED_MEM_HXX_
 #define MRR_POSIX_LIB_SHARED_MEM_HXX_
 
