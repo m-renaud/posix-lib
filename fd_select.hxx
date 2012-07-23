@@ -45,11 +45,8 @@ struct fd_select
     int retval;
 
     checkset = readset;
-    do
-    {
-      errno = 0;
-      retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
-    } while(retval == -1 && errno == EINTR);
+    errno = 0;
+    retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
 
     if(retval == -1)
       return -1;
