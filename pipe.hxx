@@ -11,6 +11,7 @@
 #define MRR_PIPE_HXX_
 
 #include <array>
+#include <unistd.h>
 
 #include "file_descriptor.hxx"
 
@@ -94,8 +95,7 @@ public:
   file_descriptor& write_end()
   {
     return write;
-
-  } // file_descriptor& write_end()
+  }
 
 private:
   file_descriptor read;
