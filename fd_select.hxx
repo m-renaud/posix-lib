@@ -26,46 +26,62 @@ struct fd_select
   using function_type = std::function<void(int)>;
 
   fd_select()
+    : timeout_is_set(false)
   {
     FD_ZERO(&readset);
+    FD_ZERO(&writeset);
+    FD_ZERO(&exceptset);
   }
 
-  int listen()
+  void set_timeout(long sec, long usec)
+  {
+    timeout.tv_sec = sec;
+    timeout.tv_usec = usec;
+    timeout_is_set = true;
+  }
+
+  int multiplex()
   {
     int retval;
 
-    checkset = readset;
-    do
-    {
-      errno = 0;
-      retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
-    } while(retval == -1 && errno == EINTR);
+    read_checkset = readset;
+    write_checkset = writeset;
+    except_checkset = exceptset;
 
-    if(retval == -1)
-      return -1;
-
-    for(int fd : fds)
-      if(FD_ISSET(fd, &checkset))
-	return fd;
-  }
-
-  int listen_with_action()
-  {
-    int retval;
-
-    checkset = readset;
     errno = 0;
-    retval = ::select(FD_SETSIZE, &checkset, NULL, NULL, NULL);
+    retval = ::select(
+      FD_SETSIZE,
+      &read_checkset,
+      &write_checkset,
+      &except_checkset,
+      (timeout_is_set) ? &timeout : NULL   // Optionally set a timeout
+    );
 
     if(retval == -1)
       return -1;
 
     std::size_t pos = 0;
 
-    for(int fd : fds)
+    for(int fd : read_fds)
     {
-      if(FD_ISSET(fd, &checkset))
-	actions[pos](fd);
+      if(FD_ISSET(fd, &read_checkset))
+	read_actions[pos](fd);
+      ++pos;
+    }
+
+    pos = 0;
+    for(int fd : write_fds)
+    {
+      if(FD_ISSET(fd, &write_checkset))
+	write_actions[pos](fd);
+      ++pos;
+    }
+
+    pos = 0;
+    for(int fd : except_fds)
+    {
+      if(FD_ISSET(fd, &except_checkset))
+	except_actions[pos](fd);
       ++pos;
     }
 
@@ -74,23 +90,43 @@ struct fd_select
   } // int listen_with_action()
 
 
-  void watch(int fd)
+  void register_read_fd(int fd, function_type&& f)
   {
-    fds.push_back(fd);
+    read_fds.push_back(fd);
     FD_SET(fd, &readset);
+    read_actions.push_back(f);
   }
 
-  void watch(int fd, function_type&& f)
+  void register_write_fd(int fd, function_type&& f)
   {
-    watch(fd);
-    actions.push_back(f);
+    write_fds.push_back(fd);
+    FD_SET(fd, &writeset);
+    write_actions.push_back(f);
+  }
+
+  void register_except_fd(int fd, function_type&& f)
+  {
+    except_fds.push_back(fd);
+    FD_SET(fd, &exceptset);
+    except_actions.push_back(f);
   }
 
 private:
+  fd_set readset, read_checkset;
+  fd_set writeset, write_checkset;
+  fd_set exceptset, except_checkset;
 
-  fd_set readset, checkset;
-  std::vector<int> fds;
-  std::vector<function_type> actions;
+  bool timeout_is_set;
+  struct timeval timeout;
+
+  std::vector<int> read_fds;
+  std::vector<function_type> read_actions;
+
+  std::vector<int> write_fds;
+  std::vector<function_type> write_actions;
+
+  std::vector<int> except_fds;
+  std::vector<function_type> except_actions;
 
 }; // struct fd_select
 

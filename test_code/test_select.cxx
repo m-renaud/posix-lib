@@ -48,12 +48,12 @@ int main()
 
   mrr::posix::fd_select p_select;
 
-  p_select.watch(p1.read_end(), read_numbers);
-  p_select.watch(p2.read_end(), read_numbers);
+  p_select.register_read_fd(p1.read_end(), read_numbers);
+  p_select.register_read_fd(p2.read_end(), read_numbers);
 
   for(;;)
   {
-    int ret_val = p_select.listen_with_action();
+    int ret_val = p_select.multiplex();
     if(ret_val == -1)
       break;
     else
