@@ -12,9 +12,8 @@
 
 #include <iostream>
 #include <streambuf>
-#include <cstdio>
-#include <unistd.h>
-#include <cstring>
+
+#include "unistd.hxx"
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -22,51 +21,6 @@ namespace mrr {
 namespace posix {
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-namespace detail {
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-// Wrapper function for the read system call to handle EINTR.
-// The read function is reentrant so this must be taken care of...
-ssize_t myread(int fildes, void *buf, size_t nbyte)
-{
-  ssize_t numbytes = 0;
-
-  // Loop while the read function is interupted.  Set errno in the loop
-  // to make sure that another system call has not set it.
-  do
-  {
-    errno = 0;
-    numbytes = ::read(fildes, buf, nbyte);
-  }
-  while (numbytes == -1 && errno == EINTR);
-  return numbytes;
-}
-
-//m===========================================================================
-// Wrapper function for the write system call to handle EINTR.
-// The write function is reentrant so this must be taken care of...
-ssize_t mywrite(int fildes, const void *buf, size_t nbyte)
-{
-  // Loop while the write function is interupted.  Set errno in the loop
-  // to make sure that another system call has not set it.
-  ssize_t numbytes = 0;
-  do
-  {
-    errno = 0;
-    numbytes = ::write(fildes, buf, nbyte);
-  }
-  while (numbytes == -1 && errno == EINTR);
-  return numbytes;
-}
-
-//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-} // namespace detail
-
-//=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -99,7 +53,7 @@ protected:
     {
       errno = 0;
       char_type c2 = traits_type::to_char_type(c);
-      if(detail::mywrite(fd, &c2, 1) < 0 && errno != 0)
+      if(mrr::posix::write(fd, &c2, 1) < 0 && errno != 0)
 	return traits_type::eof();
       else
 	return c;
@@ -123,7 +77,7 @@ protected:
       char_type c;
       errno = 0;
 
-      if(detail::myread(fd, &c, 1) < 0 && errno != 0)
+      if(mrr::posix::read(fd, &c, 1) < 0 && errno != 0)
       {
 	return traits_type::eof();
       }
@@ -150,7 +104,7 @@ protected:
       char_type c;
       errno = 0;
 
-      if(detail::myread(fd, &c, 1) < 0 && errno != 0)
+      if(mrr::posix::read(fd, &c, 1) < 0 && errno != 0)
       {
 	return traits_type::eof();
       }

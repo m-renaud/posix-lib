@@ -10,8 +10,7 @@
 #ifndef MRR_FILE_DESCRIPTOR_HXX_
 #define MRR_FILE_DESCRIPTOR_HXX_
 
-#include <errno.h>
-#include <unistd.h>
+#include "unistd.hxx"
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -49,26 +48,27 @@ struct file_descriptor
     return auto_close_fd;
   }
 
-  void close()
+  int close()
   {
     int ret_val;
 
     if(fd == -1)
       return;
 
-    do
-    {
-      errno = 0;
-      ret_val = ::close(fd);
-    } while(ret_val == -1 && errno != EINTR);
+    ret_val = mrr::posix::close(fd);
 
-    fd = -1;
+    if(ret_val != -1)
+      fd = -1;
+
+    return ret_val;
   }
 
   ~file_descriptor()
   {
     if(auto_close_fd)
-      this->close();
+    {
+      int ret_val = this->close();
+    }
   }
 
   file_descriptor& operator =(fd_type const& fd_)
