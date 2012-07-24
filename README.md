@@ -17,3 +17,9 @@ for details.
 * Select on file descriptors
 * Shared memory
 
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
+## Documentation ##
+
+For documentation on the library, consult the POSIX-lib wiki on GitHub
+at https://github.com/mrenaud92/posix-lib/wiki
