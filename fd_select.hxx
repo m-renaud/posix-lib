@@ -90,21 +90,21 @@ struct fd_select
   } // int listen_with_action()
 
 
-  void register_read_fd(int fd, function_type&& f)
+  void register_read_fd(int fd, function_type const& f)
   {
     read_fds.push_back(fd);
     FD_SET(fd, &readset);
     read_actions.push_back(f);
   }
 
-  void register_write_fd(int fd, function_type&& f)
+  void register_write_fd(int fd, function_type const& f)
   {
     write_fds.push_back(fd);
     FD_SET(fd, &writeset);
     write_actions.push_back(f);
   }
 
-  void register_except_fd(int fd, function_type&& f)
+  void register_except_fd(int fd, function_type const& f)
   {
     except_fds.push_back(fd);
     FD_SET(fd, &exceptset);
