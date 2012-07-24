@@ -35,7 +35,7 @@ struct signal_handler
   void set_handle(int signo, std::function<void()> const& f)
   {
     struct sigaction act;
-    act.sa_handler = signal_handling_global_function;
+    act.sa_handler = global_signal_handling_function;
     sigaction(signo, &act, NULL);
     handles[signo] = f;
   }
@@ -51,11 +51,11 @@ signal_handler signals;
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-void signal_handling_global_function(int signo)
+void global_signal_handling_function(int signo)
 {
   signals.handles[signo]();
   struct sigaction act;
-  act.sa_handler = signal_handling_global_function;
+  act.sa_handler = global_signal_handling_function;
   sigaction(signo, &act, NULL);
 }
 
