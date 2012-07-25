@@ -38,6 +38,12 @@ struct file_descriptor
   {
   }
 
+  ~file_descriptor()
+  {
+    if(auto_close_fd)
+      this->close();
+  }
+
   void auto_close(bool auto_close_fd_)
   {
     auto_close_fd = auto_close_fd_;
@@ -53,22 +59,14 @@ struct file_descriptor
     int ret_val;
 
     if(fd == -1)
-      return;
+      return 0;
 
     ret_val = mrr::posix::close(fd);
 
-    if(ret_val != -1)
+    if(ret_val == 0)
       fd = -1;
 
     return ret_val;
-  }
-
-  ~file_descriptor()
-  {
-    if(auto_close_fd)
-    {
-      int ret_val = this->close();
-    }
   }
 
   file_descriptor& operator =(fd_type const& fd_)
