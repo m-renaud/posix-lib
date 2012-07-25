@@ -16,6 +16,7 @@ for details.
 * File descriptor streams
 * Select on file descriptors
 * Shared memory
+* Signal Handling
 
 
 <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
