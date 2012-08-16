@@ -24,7 +24,7 @@ int main()
   foo f1;
 
   mrr::posix::signals.set_handle(SIGINT, std::bind(&foo::func_to_handle_sigint, f1));
-  mrr::posix::ignore(SIGHUP);
+  mrr::posix::signals.ignore(SIGHUP);
 
   for(;;)
     ;

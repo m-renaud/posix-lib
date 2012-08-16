@@ -34,19 +34,19 @@ struct signal_handler
 {
   int ignore(int signo)
   {
-    struct sigaction act;
-    act.sa_handler = SIG_IGN;
-    return sigaction(signo, &act, NULL);
+    struct sigaction& action = sigaction_structs[signo];
+    action.sa_handler = SIG_IGN;
+    return sigaction(signo, &action, NULL);
   }
 
   int set_handle(int signo, std::function<void()> const& f, int flags = 0)
   {
     int return_value;
 
-    struct sigaction act;
-    act.sa_handler = global_signal_handling_function;
-    act.sa_flags = flags;
-    return_value = sigaction(signo, &act, NULL);
+    struct sigaction& action = sigaction_structs[signo];
+    action.sa_handler = global_signal_handling_function;
+    action.sa_flags = flags;
+    return_value = sigaction(signo, &action, NULL);
 
     if(return_value == 0)
       handles[signo] = f;
@@ -55,6 +55,7 @@ struct signal_handler
   }
 
   std::unordered_map<int,std::function<void()> > handles;
+  std::unordered_map<int,struct sigaction> sigaction_structs;
 
 }; // struct signal_handler;
 
