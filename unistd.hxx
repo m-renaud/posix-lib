@@ -10,6 +10,10 @@
 #ifndef MRR_UNISTD_HXX_
 #define MRR_UNISTD_HXX_
 
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -18,6 +22,22 @@ namespace mrr {
 namespace posix {
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+
+
+//m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+int myopen(char const* pathname, int flags)
+{
+  int ret_val;
+  do
+  {
+    errno = 0;
+    ret_val = ::open(pathname, flags);
+  } while(ret_val == -1 && errno == EINTR);
+
+  return ret_val;
+}
+
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -63,7 +83,7 @@ int close(int fd)
   {
     errno = 0;
     ret_val = ::close(fd);
-  } while(ret_val == -1 && errno != EINTR);
+  } while(ret_val == -1 && errno == EINTR);
 
   return ret_val;
 }
