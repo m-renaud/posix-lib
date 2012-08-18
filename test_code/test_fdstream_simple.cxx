@@ -13,16 +13,13 @@ int main()
 
   int received;
 
-#if 1
-  write_end << 5;
-#else
-  write_end << 5 << std::char_traits<char>::eof();
-#endif
-
-  write_end.flush();
+  write_end << 5 << std::endl;
+  write_end << 8 << std::endl;
 
   read_end >> received;
+  std::cout << received << std::endl;
 
+  read_end >> received;
   std::cout << received << std::endl;
 
   return 0;
