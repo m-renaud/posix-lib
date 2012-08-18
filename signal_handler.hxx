@@ -69,9 +69,6 @@ signal_handler signals;
 void global_signal_handling_function(int signo)
 {
   signals.handles[signo]();
-  struct sigaction act;
-  act.sa_handler = global_signal_handling_function;
-  sigaction(signo, &act, NULL);
 }
 
 

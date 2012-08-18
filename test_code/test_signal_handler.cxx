@@ -1,5 +1,6 @@
 #include <iostream>
 #include <functional>
+#include <memory>
 
 #include "../signal_handler.hxx"
 
@@ -17,13 +18,17 @@ struct foo
   }
 
   int i;
+  // std::unique_ptr<int> is;
 };
 
 int main()
 {
   foo f1;
 
-  mrr::posix::signals.set_handle(SIGINT, std::bind(&foo::func_to_handle_sigint, f1));
+  mrr::posix::signals.set_handle(
+    SIGINT,
+    [&]{f1.func_to_handle_sigint();}
+  );
   mrr::posix::signals.ignore(SIGHUP);
 
   for(;;)
