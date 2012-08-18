@@ -26,7 +26,7 @@ namespace posix {
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-int myopen(char const* pathname, int flags)
+int open(char const* pathname, int flags)
 {
   int ret_val;
   do
