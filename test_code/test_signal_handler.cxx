@@ -25,10 +25,7 @@ int main()
 {
   foo f1;
 
-  mrr::posix::signals.set_handle(
-    SIGINT,
-    [&]{f1.func_to_handle_sigint();}
-  );
+  mrr::posix::signals.set_handle(SIGINT, [&]{f1.func_to_handle_sigint();});
   mrr::posix::signals.ignore(SIGHUP);
 
   for(;;)
