@@ -10,11 +10,13 @@
 #ifndef MRR_UNISTD_HXX_
 #define MRR_UNISTD_HXX_
 
-#include <errno.h>
+#include <cerrno>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdexcept>
+#include "cxx_system_error.hxx"
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -26,14 +28,20 @@ namespace posix {
 
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-int open(char const* pathname, int flags)
+int open(char const* pathname, int flags, mode_t mode = S_IRUSR | S_IWUSR)
 {
   int ret_val;
   do
   {
     errno = 0;
-    ret_val = ::open(pathname, flags);
+    ret_val = ::open(pathname, flags, mode);
   } while(ret_val == -1 && errno == EINTR);
+
+  if(ret_val == -1)
+    mrr::posix::throw_system_error(
+      errno,
+      "Open failed for file " + std::string(pathname)
+    );
 
   return ret_val;
 }
@@ -53,6 +61,13 @@ ssize_t read(int fildes, void* buf, size_t nbyte)
     numbytes = ::read(fildes, buf, nbyte);
   }
   while (numbytes == -1 && errno == EINTR);
+
+  if(numbytes == -1)
+    mrr::posix::throw_system_error(
+      errno,
+      "Read failed on file descriptor " + std::to_string(fildes)
+    );
+
   return numbytes;
 }
 
@@ -70,6 +85,13 @@ ssize_t write(int fildes, void const* buf, size_t nbyte)
     numbytes = ::write(fildes, buf, nbyte);
   }
   while (numbytes == -1 && errno == EINTR);
+
+  if(numbytes == -1)
+    mrr::posix::throw_system_error(
+      errno,
+      "Write failed on file descriptor " + fildes
+    );
+
   return numbytes;
 }
 
@@ -84,6 +106,12 @@ int close(int fd)
     errno = 0;
     ret_val = ::close(fd);
   } while(ret_val == -1 && errno == EINTR);
+
+  if(ret_val == -1)
+    mrr::posix::throw_system_error(
+      errno,
+      "Failed to close file descriptor " + std::to_string(fd)
+    );
 
   return ret_val;
 }

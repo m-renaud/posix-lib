@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <stdexcept>
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -20,10 +21,6 @@ namespace mrr {
 namespace posix {
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-struct fork_failed
-{
-};
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 template <typename Function>
@@ -65,6 +62,7 @@ struct child_process
     pid_=  0;
     status_ = -1;
     waited_for = false;
+
     return *this;
   }
 
@@ -91,7 +89,15 @@ struct child_process
   void fork(FuncArgs&&... args)
   {
     pid_ = ::fork();
-    if(pid_ == 0)
+
+    if(pid_ == -1)
+    {
+      mrr::posix::throw_system_error(
+        errno,
+        "Fork failed"
+      );
+    }
+    else if(pid_ == 0)
     {
       func_(std::forward<FuncArgs>(args)...);
       std::exit(0);

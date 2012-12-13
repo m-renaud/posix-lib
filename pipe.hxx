@@ -14,6 +14,7 @@
 #include <unistd.h>
 
 #include "file_descriptor.hxx"
+#include "cxx_system_error.hxx"
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
@@ -30,7 +31,14 @@ private:
   void init()
   {
     int fd_[2];
-    ::pipe(fd_);
+    int ret_val = ::pipe(fd_);
+
+    if(ret_val == -1)
+      mrr::posix::throw_system_error(
+        errno,
+        "Failed to create pipe"
+      );
+
     read = fd_[0];
     write = fd_[1];
   }
@@ -42,28 +50,25 @@ public:
   }
 
   pipe(pipe&& p)
-    : read(p.read.fd), write(p.write.fd)
+    : read(p.read_end()), write(p.write_end())
   {
-    p.read.fd = -1;
-    p.write.fd = -1;
+    p.read = -1;
+    p.write = -1;
   }
 
   pipe& operator =(pipe&& p)
   {
-    read = p.read.fd;
-    write = p.read.fd;
-    p.read.fd = -1;
-    p.write.fd = -1;
+    read = p.read_end();
+    write = p.write_end();
+
+    p.read = -1;
+    p.write = -1;
+
     return *this;
   }
 
   pipe(pipe const&) = delete;
   pipe& operator =(pipe const&) = delete;
-
-  ~pipe()
-  {
-    this->close();
-  }
 
   void close()
   {

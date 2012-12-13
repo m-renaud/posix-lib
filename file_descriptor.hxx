@@ -19,12 +19,12 @@ namespace posix {
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-struct pipe;
+// struct pipe;
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 struct file_descriptor
 {
-  friend class pipe;
+  // friend class pipe;
 
   using fd_type = int;
 
@@ -33,38 +33,18 @@ struct file_descriptor
   {
   }
 
-  file_descriptor(fd_type fd_, bool auto_close_fd_ = false)
-    : fd(fd_), auto_close_fd(auto_close_fd_)
+  file_descriptor(fd_type fd_)
+    : fd(fd_)
   {
-  }
-
-  ~file_descriptor()
-  {
-    if(auto_close_fd)
-      this->close();
-  }
-
-  void auto_close(bool auto_close_fd_)
-  {
-    auto_close_fd = auto_close_fd_;
-  }
-
-  bool auto_close() const
-  {
-    return auto_close_fd;
   }
 
   int close()
   {
-    int ret_val;
-
     if(fd == -1)
       return 0;
 
-    ret_val = mrr::posix::close(fd);
-
-    if(ret_val == 0)
-      fd = -1;
+    int ret_val = mrr::posix::close(fd);
+    fd = -1;
 
     return ret_val;
   }
@@ -87,7 +67,6 @@ struct file_descriptor
 
 private:
   fd_type fd;
-  bool auto_close_fd;
 
 }; // struct file_descriptor
 

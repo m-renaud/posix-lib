@@ -54,9 +54,9 @@ protected:
       errno = 0;
       char_type c2 = traits_type::to_char_type(c);
       if(mrr::posix::write(fd, &c2, 1) < 0 && errno != 0)
-	return traits_type::eof();
+        return traits_type::eof();
       else
-	return c;
+        return c;
     }
 
     return traits_type::not_eof(c);
@@ -79,12 +79,12 @@ protected:
 
       if(mrr::posix::read(fd, &c, 1) < 0 && errno != 0)
       {
-	return traits_type::eof();
+        return traits_type::eof();
       }
       else
       {
-	char_buf = c;
-	return traits_type::to_int_type(c);
+        char_buf = c;
+        return traits_type::to_int_type(c);
       }
 
     }
@@ -106,13 +106,13 @@ protected:
 
       if(mrr::posix::read(fd, &c, 1) < 0 && errno != 0)
       {
-	return traits_type::eof();
+        return traits_type::eof();
       }
       else
       {
-	take_from_buf = true;
-	char_buf = c;
-	return traits_type::to_int_type(c);
+        take_from_buf = true;
+        char_buf = c;
+        return traits_type::to_int_type(c);
       }
     }
 
@@ -125,7 +125,7 @@ protected:
     if(!take_from_buf)
     {
       if(!traits_type::eq_int_type(c, traits_type::eof()))
-	char_buf = traits_type::to_char_type(c);
+        char_buf = traits_type::to_char_type(c);
 
       take_from_buf = false;
       return traits_type::to_int_type(char_buf);
