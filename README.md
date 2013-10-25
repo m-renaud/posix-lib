@@ -4,8 +4,8 @@ POSIX Lib is a set of C++ binding for the POSIX API.
 
 # LICENSE #
 
-This software is licensed under the FreeBSD license. See the LICENSE file
-for details.
+This software is licensed under the FreeBSD license, more formally,
+the BSD 2-Claues License. See the LICENSE file for details.
 
 <!-- =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- -->
 ## What's Implemented ##
