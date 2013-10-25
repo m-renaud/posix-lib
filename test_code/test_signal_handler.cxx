@@ -7,27 +7,27 @@
 
 struct foo
 {
-  foo()
-    : i()
-  {
-  }
+	foo()
+		: i()
+	{
+	}
 
-  void func_to_handle_sigint()
-  {
-    std::cout << "Handling SIGINT with i = " << ++i << std::endl;
-  }
+	void func_to_handle_sigint()
+	{
+		std::cout << "Handling SIGINT with i = " << ++i << std::endl;
+	}
 
-  int i;
-  // std::unique_ptr<int> is;
+	int i;
+	// std::unique_ptr<int> is;
 };
 
 int main()
 {
-  foo f1;
+	foo f1;
 
-  mrr::posix::signals.set_handle(SIGINT, [&]{f1.func_to_handle_sigint();});
-  mrr::posix::signals.ignore(SIGHUP);
+	mrr::posix::signals.set_handle(SIGINT, [&]{f1.func_to_handle_sigint();});
+	mrr::posix::signals.ignore(SIGHUP);
 
-  for(;;)
-    ;
+	for(;;)
+		;
 }

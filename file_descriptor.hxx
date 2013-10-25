@@ -22,47 +22,47 @@ namespace posix {
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 struct file_descriptor
 {
-  using fd_type = int;
+	using fd_type = int;
 
-  file_descriptor()
-    : file_descriptor(-1)
-  {
-  }
+	file_descriptor()
+		: file_descriptor(-1)
+	{
+	}
 
-  file_descriptor(fd_type fd_)
-    : fd(fd_)
-  {
-  }
+	file_descriptor(fd_type fd_)
+		: fd(fd_)
+	{
+	}
 
-  int close()
-  {
-    if(fd == -1)
-      return 0;
+	int close()
+	{
+		if(fd == -1)
+			return 0;
 
-    int ret_val = mrr::posix::close(fd);
-    fd = -1;
+		int ret_val = mrr::posix::close(fd);
+		fd = -1;
 
-    return ret_val;
-  }
+		return ret_val;
+	}
 
-  file_descriptor& operator =(fd_type const& fd_)
-  {
-    fd = fd_;
-    return *this;
-  }
+	file_descriptor& operator =(fd_type const& fd_)
+	{
+		fd = fd_;
+		return *this;
+	}
 
-  operator fd_type const&() const
-  {
-    return fd;
-  }
+	operator fd_type const&() const
+	{
+		return fd;
+	}
 
-  fd_type const& get_fd() const
-  {
-    return fd;
-  }
+	fd_type const& get_fd() const
+	{
+		return fd;
+	}
 
 private:
-  fd_type fd;
+	fd_type fd;
 
 }; // struct file_descriptor
 

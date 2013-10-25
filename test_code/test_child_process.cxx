@@ -5,28 +5,28 @@
 
 void sum(int a, int b)
 {
-  std::cout << a << " + " << b << " = " << a+b << std::endl;
+	std::cout << a << " + " << b << " = " << a+b << std::endl;
 }
 
 int main()
 {
-  auto p1 = mrr::posix::make_child_process(
-    [](int a) { std::cout << "a = " << a << std::endl; }
-  );
+	auto p1 = mrr::posix::make_child_process(
+		[](int a) { std::cout << "a = " << a << std::endl; }
+	);
 
-  p1.fork(5);
-  p1.wait();
+	p1.fork(5);
+	p1.wait();
 
-  auto p2 = mrr::posix::make_child_process(sum);
+	auto p2 = mrr::posix::make_child_process(sum);
 
-  p2.fork(5,10);
-  p2.wait();
+	p2.fork(5,10);
+	p2.wait();
 
-  auto prebound = std::bind(sum, 50, 11);
+	auto prebound = std::bind(sum, 50, 11);
 
-  auto p3 = mrr::posix::make_child_process(prebound);
+	auto p3 = mrr::posix::make_child_process(prebound);
 
-  p3.fork();
-  p3.wait();
+	p3.fork();
+	p3.wait();
 
 }

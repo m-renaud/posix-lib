@@ -5,30 +5,30 @@
 
 int main()
 {
-  int id;
-  int int_val;
-  std::string str_val;
-  
-  mrr::posix::shared_memory<int> num;
-  mrr::posix::shared_memory<char, 1000> str;
+	int id;
+	int int_val;
+	std::string str_val;
 
-  std::cout << "Enter int segment id: ";
-  std::cin >> id;
+	mrr::posix::shared_memory<int> num;
+	mrr::posix::shared_memory<char, 1000> str;
 
-  num.attach(id);
+	std::cout << "Enter int segment id: ";
+	std::cin >> id;
 
-  int_val = num;
+	num.attach(id);
 
-  std::cout << "Int value = " << int_val << std::endl;
+	int_val = num;
 
-  std::cout << "Enter str segment id: ";
-  std::cin >> id;
+	std::cout << "Int value = " << int_val << std::endl;
 
-  str.attach(id);
+	std::cout << "Enter str segment id: ";
+	std::cin >> id;
 
-  str_val = str;
+	str.attach(id);
 
-  std::cout << "Str value = " << str_val << std::endl;
+	str_val = str;
 
-  return 0;
+	std::cout << "Str value = " << str_val << std::endl;
+
+	return 0;
 }

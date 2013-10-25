@@ -25,80 +25,80 @@ namespace posix {
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 struct signal_set
 {
-  signal_set()
-    : good_state{true}
-  {
-    empty();
-  }
+	signal_set()
+		: good_state{true}
+	{
+		empty();
+	}
 
-  void empty()
-  {
-    if(!good_state)
-      return;
+	void empty()
+	{
+		if(!good_state)
+			return;
 
-    errno = 0;
-    ::sigemptyset(&set);
-  }
+		errno = 0;
+		::sigemptyset(&set);
+	}
 
-  void fill()
-  {
-    if(!good_state)
-      return;
+	void fill()
+	{
+		if(!good_state)
+			return;
 
-    errno = 0;
-    ::sigfillset(&set);
-  }
+		errno = 0;
+		::sigfillset(&set);
+	}
 
-  int add(int signum)
-  {
-    if(!good_state)
-      return -1;
+	int add(int signum)
+	{
+		if(!good_state)
+			return -1;
 
-    errno = 0;
-    int ret_val = ::sigaddset(&set, signum);
+		errno = 0;
+		int ret_val = ::sigaddset(&set, signum);
 
-    if(ret_val == -1)
-      good_state = false;
+		if(ret_val == -1)
+			good_state = false;
 
-    return ret_val;
-  }
+		return ret_val;
+	}
 
-  int del(int signum)
-  {
-    if(!good_state)
-      return -1;
+	int del(int signum)
+	{
+		if(!good_state)
+			return -1;
 
-    errno = 0;
-    int ret_val = ::sigdelset(&set, signum);
+		errno = 0;
+		int ret_val = ::sigdelset(&set, signum);
 
-    if(ret_val == -1)
-      good_state = false;
+		if(ret_val == -1)
+			good_state = false;
 
-    return ret_val;
-  }
+		return ret_val;
+	}
 
-  bool contains(int signum) const
-  {
-    if(!good_state)
-      return false;
+	bool contains(int signum) const
+	{
+		if(!good_state)
+			return false;
 
-    errno = 0;
-    int ret_val = ::sigismember(&set, signum);
+		errno = 0;
+		int ret_val = ::sigismember(&set, signum);
 
-    if(ret_val == 1)
-      return true;
-    else
-      return false;
-  }
+		if(ret_val == 1)
+			return true;
+		else
+			return false;
+	}
 
-  explicit operator bool() const
-  {
-    return good_state;
-  }
+	explicit operator bool() const
+	{
+		return good_state;
+	}
 
 private:
-  sigset_t set;
-  bool good_state;
+	sigset_t set;
+	bool good_state;
 
 }; // struct signal_set
 

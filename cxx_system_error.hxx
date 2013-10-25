@@ -28,45 +28,45 @@ namespace posix {
 
 template <typename... Args>
 void throw_system_error(
-  typename std::remove_reference<decltype(errno)>::type const errval,
-  Args&&... args)
+	typename std::remove_reference<decltype(errno)>::type const errval,
+	Args&&... args)
 {
-  //
-  // See C++11 Sect. "19.5.1.5 Error category objects
-  // [syserr.errcat.objects]" clause 4 paragraph 2 and note
-  // that it is implementation specific WHICH category is
-  // returned (i.e., generic or system). The paragraph's text
-  // however implies that the code below is sufficient to
-  // use system_error with any errno value (POSIX or OS-specific).
-  //
-  throw
-  std::system_error{
-    errval,
-    std::system_category().default_error_condition(errval).category(),
-    std::forward<Args>(args)...
-    }
-  ;
+	//
+	// See C++11 Sect. "19.5.1.5 Error category objects
+	// [syserr.errcat.objects]" clause 4 paragraph 2 and note
+	// that it is implementation specific WHICH category is
+	// returned (i.e., generic or system). The paragraph's text
+	// however implies that the code below is sufficient to
+	// use system_error with any errno value (POSIX or OS-specific).
+	//
+	throw
+		std::system_error{
+		errval,
+			std::system_category().default_error_condition(errval).category(),
+			std::forward<Args>(args)...
+			}
+	;
 }
 
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 void output_system_error_msg()
 {
-  try
-  {
-    throw;
-  }
-  catch (std::system_error const& e)
-  {
-    auto c = e.code();
-    std::cout << "errno = "     << c.value() << "..."  << std::endl
-              << "      What: " << e.what()            << std::endl
-              << "  Category: " << c.category().name() << std::endl
-              << "     Value: " << c.value()           << std::endl
-              << "   Message: " << c.message()         << std::endl
-                                                       << std::endl
-    ;
-  }
+	try
+	{
+		throw;
+	}
+	catch (std::system_error const& e)
+	{
+		auto c = e.code();
+		std::cout << "errno = "     << c.value() << "..."  << std::endl
+		          << "      What: " << e.what()            << std::endl
+		          << "  Category: " << c.category().name() << std::endl
+		          << "     Value: " << c.value()           << std::endl
+		          << "   Message: " << c.message()         << std::endl
+		          << std::endl
+			;
+	}
 }
 
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
