@@ -19,13 +19,9 @@ namespace posix {
 
 //=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-// struct pipe;
-
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 struct file_descriptor
 {
-  // friend class pipe;
-
   using fd_type = int;
 
   file_descriptor()
