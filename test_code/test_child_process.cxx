@@ -11,8 +11,7 @@ void sum(int a, int b)
 int main()
 {
   auto p1 = mrr::posix::make_child_process(
-    [](int a) { std::cout << "a = " << a << std::endl;
-    }
+    [](int a) { std::cout << "a = " << a << std::endl; }
   );
 
   p1.fork(5);
@@ -22,7 +21,7 @@ int main()
 
   p2.fork(5,10);
   p2.wait();
-  
+
   auto prebound = std::bind(sum, 50, 11);
 
   auto p3 = mrr::posix::make_child_process(prebound);
