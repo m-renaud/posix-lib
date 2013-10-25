@@ -15,6 +15,8 @@
 #include <unistd.h>
 #include <stdexcept>
 
+#include "cxx_system_error.hxx"
+
 //m=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 namespace mrr {
